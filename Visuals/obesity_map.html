@@ -1,1 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Obesity Rate by State (Australia)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f7f8fa; }
+    main { max-width: 1000px; margin: 24px auto 36px; padding: 0 16px; }
+    #vis { min-height: 560px; }
+  </style>
+</head>
+<body>
+<main>
+  <div id="vis"></div>
+</main>
 
+<script>
+const TOPO_URL = "https://raw.githubusercontent.com/anansh712/DV2/main/Datasets/aus_states.json";
+const CSV_URL  = "https://raw.githubusercontent.com/anansh712/DV2/main/Datasets/obesity_by_state.csv";
+
+// If your TopoJSON has a single object, this finds its key:
+fetch(TOPO_URL).then(r => r.json()).then(topology => {
+  const featureKey = Object.keys(topology.objects || {})[0];
+
+  // Shared projection
+  const projection = { type: "mercator", center: [134, -25], scale: 800, translate: [450, 280] };
+
+  // 1) Ocean (sphere) behind everything
+  const sphere = {
+    data: { sphere: true },
+    mark: { type: "geoshape", fill: "#e9f5ff" },
+    projection
+  };
+
+  // 2) Graticules
+  const graticule = {
+    data: { graticule: true },
+    mark: { type: "geoshape", stroke: "#cfd8dc", strokeWidth: 0.5, opacity: 0.7 },
+    projection
+  };
+
+  // 3) Light base land (same TopoJSON, just a subtle backdrop)
+  const base = {
+    data: { url: TOPO_URL, format: { type: "topojson", feature: featureKey } },
+    mark: { type: "geoshape", fill: "#f2f2f2", stroke: "#cfcfcf", strokeWidth: 0.7 },
+    projection
+  };
+
+  // 4) Choropleth layer (states only, filtered, joined to CSV)
+  const choropleth = {
+    data: { url: TOPO_URL, format: { type: "topojson", feature: featureKey } },
+    transform: [
+      // safe: no method calls; just OR for name fallback
+      { calculate: "datum.properties.name || datum.properties.name_en", as: "state_name" },
+
+      // filter out extra territories
+      { filter:
+        "datum.state_name != 'Coral Sea Islands' && " +
+        "datum.state_name != 'Jervis Bay Territory' && " +
+        "datum.state_name != 'Ashmore and Cartier Islands'"
+      },
+
+      // join obesity values
+      {
+        lookup: "state_name",
+        from: { data: { url: CSV_URL }, key: "State", fields: ["Obese (%)"] }
+      }
+    ],
+    mark: { type: "geoshape", stroke: "white", strokeWidth: 0.8 },
+    encoding: {
+      color: {
+        field: "Obese (%)",
+        type: "quantitative",
+        title: "Obesity (%)",
+        // higher-contrast, colour-blind friendly
+        scale: {
+          type: "threshold",
+          domain: [27, 29, 31, 33, 35],
+          range: ["#f7fcf5","#c7e9c0","#74c476","#238b45","#005a32","#00341f"]
+        },
+        legend: {
+            labelFormat: ".1f",
+            gradientLength: 120,
+            orient: "right",
+            titleFontSize: 12,
+            labelFontSize: 10
+        },
+      },
+      tooltip: [
+        { field: "state_name", title: "State" },
+        { field: "Obese (%)", type: "quantitative", title: "Obesity (%)", format: ".1f" }
+      ]
+    },
+    projection
+  };
+
+  // 5) State labels (safe if/else chain – no object indexing or methods)
+  const labels = {
+    data: { url: TOPO_URL, format: { type: "topojson", feature: featureKey } },
+    transform: [
+      { calculate: "datum.properties.name || datum.properties.name_en", as: "state_name" },
+      { filter:
+        "datum.state_name != 'Coral Sea Islands' && " +
+        "datum.state_name != 'Jervis Bay Territory' && " +
+        "datum.state_name != 'Ashmore and Cartier Islands'"
+      },
+      { calculate: "datum.properties.longitude", as: "lon" },
+      { calculate: "datum.properties.latitude",  as: "lat" },
+
+      // Abbreviations via nested if (Vega-safe)
+      { calculate:
+          "datum.state_name == 'New South Wales' ? 'NSW' :" +
+          "datum.state_name == 'Victoria' ? 'VIC' :" +
+          "datum.state_name == 'Queensland' ? 'QLD' :" +
+          "datum.state_name == 'South Australia' ? 'SA' :" +
+          "datum.state_name == 'Western Australia' ? 'WA' :" +
+          "datum.state_name == 'Tasmania' ? 'TAS' :" +
+          "datum.state_name == 'Northern Territory' ? 'NT' :" +
+          "datum.state_name == 'Australian Capital Territory' ? 'ACT' :" +
+          "datum.state_name",
+        as: "abbr"
+      }
+    ],
+    mark: { type: "text", fontSize: 11, fontWeight: "bold", dy: 2, fill: "#0b2239" },
+    encoding: {
+      longitude: { field: "lon" },
+      latitude:  { field: "lat" },
+      text: { field: "abbr" }
+    },
+    projection
+  };
+
+  const spec = {
+    $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+    width: 900,
+    height: 610,
+    layer: [sphere, graticule, base, choropleth, labels],
+    config: { view: { stroke: null } }
+  };
+
+  vegaEmbed("#vis", spec, { actions: false });
+});
+</script>
+</body>
+</html>
