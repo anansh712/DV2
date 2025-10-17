@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Fruit & Vegetable Serves per Day by Age</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    body{margin:0;background:#f7f8fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    main{max-width:1200px;margin:28px auto;padding:0 20px}
+    #vis{min-height:520px}
+    footer{color:#555;text-align:center;margin-top:14px;font-size:.95rem}
+  </style>
+</head>
+<body>
+  <main>
+    <div id="vis"></div>
+  </main>
+
+  <script>
+    // Make sure this CSV exists in your DV2/Datasets folder
+    // Columns required: AgeGroup, Type (Fruit|Vegetables), AverageServes
+    const CSV_URL = "https://raw.githubusercontent.com/anansh712/DV2/main/Datasets/fruitveg_proportions.csv";
+
+    const spec = {
+      $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+      width: 980,
+      height: 420,
+      data: { url: CSV_URL },
+
+      transform: [
+        { filter: "datum.Type === 'Fruit' || datum.Type === 'Vegetables'" }
+      ],
+
+      layer: [
+        /* 1) connecting rule for each age group (min -> max serves) */
+        {
+          mark: { type: "rule", strokeWidth: 3, opacity: 0.7 },
+          encoding: {
+            y: { field: "AgeGroup", type: "nominal", sort: null, title: "Age group" },
+            x: { aggregate: "min", field: "AverageServes", type: "quantitative", title: "Average serves/day" },
+            x2:{ aggregate: "max", field: "AverageServes" }
+          }
+        },
+
+        /* 2) points for Fruit & Vegetables */
+        {
+          mark: { type: "point", filled: true, size: 180 },
+          encoding: {
+            y: { field: "AgeGroup", type: "nominal", sort: null },
+            x: { field: "AverageServes", type: "quantitative" },
+            color: {
+              field: "Type", type: "nominal", title: null,
+              scale: { domain: ["Fruit","Vegetables"], range: ["#56B4E9","#00A676"] }
+            },
+            tooltip: [
+              { field: "AgeGroup" },
+              { field: "Type" },
+              { field: "AverageServes", type: "quantitative", format: ".1f", title: "Serves/day" }
+            ]
+          }
+        },
+
+        /* 3) Δ label (Vegetables − Fruit) centered on the rule */
+        {
+          data: { url: CSV_URL },
+          transform: [
+            { filter: "datum.Type === 'Fruit' || datum.Type === 'Vegetables'" },
+            { pivot: "Type", value: "AverageServes", groupby: ["AgeGroup"] },
+            { calculate: "datum.Vegetables - datum.Fruit", as: "diff" },
+            { calculate: "(datum.Fruit + datum.Vegetables)/2", as: "mid" }
+          ],
+          mark: { type: "text", dy: -8, fontSize: 11, opacity: 0.8 },
+          encoding: {
+            y: { field: "AgeGroup", type: "nominal", sort: null },
+            x: { field: "mid", type: "quantitative" },
+            text: { field: "diff", type: "quantitative", format: "+.1f" },
+            color: { value: "#6b7280" }
+          }
+        },
+
+        /* 4) guideline lines at ~2 fruit and ~5 veg */
+        {
+          data: { values: [{v:2, label:"Fruit guideline ~2"}, {v:5, label:"Veg guideline ~5"}] },
+          mark: { type: "rule", strokeDash: [4,4], opacity: 0.6 },
+          encoding: { x: { field: "v", type: "quantitative" } }
+        },
+        {
+          data: { values: [{v:2, label:"2"}, {v:5, label:"5"}] },
+          mark: { type: "text", dy: -6, align: "center", fontSize: 11, opacity: 0.8 },
+          encoding: { x: { field: "v", type: "quantitative" }, y: { value: 0 }, text: { field: "label" } }
+        }
+      ],
+
+      config: {
+        background: "#ffffff",
+        view: { stroke: null },
+        axis: {
+          grid: true,
+          gridColor: "#e5e7eb",
+          domainColor: "#9ca3af",
+          labelColor: "#374151",
+          titleColor: "#111827",
+          labelFontSize: 12,
+          titleFontSize: 12
+        },
+        legend: {
+          orient: "top-right",
+          direction: "horizontal",
+          columns: 2,
+          labelFontSize: 12,
+          symbolType: "circle",
+          symbolSize: 140,
+          offset: 10
+        }
+      }
+    };
+
+    vegaEmbed("#vis", spec, { actions: false });
+  </script>
+</body>
+</html>

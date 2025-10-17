@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>BMI Classification by Age (Male vs Female)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #f7f8fa;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    main {
+      max-width: 1500px;           /* ⬆ allow wider charts */
+      margin: 32px auto;
+      padding: 0 24px;
+    }
+    #vis { min-height: 640px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div id="vis"></div>
+  </main>
+
+  <script>
+    const CSV_URL = "https://raw.githubusercontent.com/anansh712/DV2/main/Datasets/bmi_proportions.csv";
+
+const spec = {
+  $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+
+  // Each facet (Female/Male) gets this width/height
+  // -> total width ≈ 2*width + spacing
+  // If it overflows your page, reduce width to ~560.
+  width: 780,
+  height: 420,
+
+  data: { url: CSV_URL },
+
+  facet: {
+    column: {
+      field: "Sex",
+      type: "nominal",
+      title: null,
+      // 👇 facet header styling for "Female" / "Male"
+      header: {
+        labelFontSize: 12,
+        labelFontWeight: "bold",
+        labelColor: "#111827",
+        labelAlign: "center",
+        labelPadding: 6
+      }
+    }
+  },
+  spacing: 28,
+  resolve: { legend: { color: "shared" } },
+
+  spec: {
+    mark: { type: "bar", cornerRadiusEnd: 2 },
+    encoding: {
+      y: {
+        field: "AgeGroup",
+        type: "nominal",
+        title: "Age group",
+        sort: ["15–17","18–24","25–34","35–44","45–54","55–64","65 years and over"]
+      },
+      x: {
+        field: "Percent",
+        type: "quantitative",
+        stack: "normalize",
+        title: "Share within age group (%)",
+        axis: { format: ".0%", grid: true }
+      },
+      color: {
+        field: "Category",
+        type: "nominal",
+        title: "BMI category",                  // ✅ legend title
+        sort: ["Underweight","Normal","Overweight","Obese"],
+        scale: {
+          domain: ["Underweight","Normal","Overweight","Obese"],
+          range:  ["#56B4E9","#00A676","#E69F00","#D55E00"]   // crisper palette
+        },
+        legend: {
+          orient: "bottom",
+          direction: "horizontal",
+          columns: 4,                          // ✅ one row
+          titleFontSize: 13,
+          labelFontSize: 13,
+          symbolType: "circle",
+          symbolSize: 160,
+          padding: 6
+        }
+      },
+      tooltip: [
+        { field: "Sex" },
+        { field: "AgeGroup", title: "Age group" },
+        { field: "Category", title: "BMI category" },
+        { field: "Percent", title: "Share", type: "quantitative", format: ".1f" }
+      ]
+    }
+  },
+
+  config: {
+    background: "white",
+    view: { stroke: null },
+    axis: {
+      gridColor: "#e5e7eb",
+      domainColor: "#9ca3af",
+      labelColor: "#374151",
+      titleColor: "#111827",
+      labelFontSize: 13,
+      titleFontSize: 13
+    }
+  }
+};
+
+vegaEmbed("#vis", spec, { actions: false });
+  </script>
+</body>
+</html>

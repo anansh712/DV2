@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Days of Physical Activity per Week by Age Group (Australia)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#fafafa; }
+    main { max-width:1000px; margin:20px auto 40px; padding:0 16px; }
+    #vis { min-height:560px; }
+    footer { text-align:center; font-size:0.9rem; color:#555; margin-top:14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div id="vis"></div>
+  </main>
+
+  <script>
+    const CSV_URL = "https://raw.githubusercontent.com/anansh712/DV2/main/Datasets/NumberofdaysofphysicalactivitybyAge.csv";
+    const CATEGORY_ORDER = ["None","1–4","5 or more","5–6","7"];
+  
+    const spec = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "width": 780,
+      "height": 420,
+      "data": { "url": CSV_URL },
+  
+      "params": [{
+        "name": "dayFilter",
+        "value": "All",
+        "bind": { "input":"select", "options":["All", ...CATEGORY_ORDER], "name":"Days per week: " }
+      }],
+  
+      "transform": [
+        { "calculate": "trim(datum['Days'] || datum['Days '])", "as": "DaysClean" },
+        { "filter": "dayFilter == 'All' || datum.DaysClean == dayFilter" },
+        {
+          "fold": ["15–17","18–24","25–34","35–44","45–54","55–64","65 years and over"],
+          "as": ["AgeGroup","Percent"]
+        }
+      ],
+  
+      "mark": { "type": "bar", "cornerRadiusEnd": 3 },
+      "encoding": {
+        "x": {
+          "field": "AgeGroup",
+          "type": "nominal",
+          "title": "Age group",
+          "axis": { "labelAngle": 0 },
+          "scale": { "paddingInner": 0.18 }
+        },
+        "xOffset": { "field": "DaysClean" },
+        "y": {
+          "field": "Percent",
+          "type": "quantitative",
+          "title": "Percent (%)",
+          "axis": { "format": ".0f", "grid": true, "tickCount": 8 }
+        },
+        "color": {
+          "field": "DaysClean",
+          "type": "nominal",
+          "title": "Days per week",
+          "sort": CATEGORY_ORDER,
+          "scale": {
+            "domain": CATEGORY_ORDER,
+            "range": ["#8f8f8f","#4e79a7","#f28e2b","#59a14f","#e15759"]
+          },
+          "legend": { "title": "Days per week" }
+        },
+        "tooltip": [
+          { "field": "AgeGroup",  "title": "Age group" },
+          { "field": "DaysClean", "title": "Days per week" },
+          { "field": "Percent",   "type":"quantitative", "title":"Percent", "format": ".1f" }
+        ]
+      }
+    };
+  
+    vegaEmbed("#vis", spec, { actions: false });
+  </script>
+</body>
+</html>
