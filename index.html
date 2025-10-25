@@ -1,120 +1,241 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Australian Health Insights Dashboard (FIT3179)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Australian Health Insights Dashboard (FIT3179)</title>
 
-  <!-- Layout & type -->
-  <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/pure-min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --radius: 14px;
+    --shadow: 0 20px 40px rgba(0,0,0,0.08);
+    --text-main:#0f172a;
+    --text-dim:#475569;
+  }
 
-  <style>
-    :root { --bg:#f7f8fa; --card:#fff; --muted:#666; }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111;overflow-x:hidden}
-    .page{max-width:1200px;margin:42px auto;padding:0 18px}
-    h1{margin:0 0 8px;text-align:center}
-    .lead{max-width:900px;margin:0 auto 28px;text-align:center;color:#555}
-    section.card{background:var(--card);border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:18px 8px;margin:28px 0;overflow:hidden}
-    .two-col{display:flex;align-items:center;flex-wrap:wrap}
-    .one-fourth{flex:0 0 25%;max-width:25%;padding:18px}
-    .three-fourth{flex:0 0 75%;max-width:75%;padding:18px}
-    .description h2{margin:0 0 6px}
-    .description p{margin:0 0 10px;line-height:1.6}
-    .src{color:var(--muted);font-size:.92rem}
-    iframe{width:100%;height:560px;border:0;border-radius:10px;display:block;overflow:hidden}
-    iframe::-webkit-scrollbar{display:none} iframe{scrollbar-width:none}
+  body {
+    margin:0;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+    color:var(--text-main);
+    background:linear-gradient(135deg,#f0f5ff 0%,#fefdf7 100%);
+  }
 
-    /* alternate background tint to separate sections slightly */
-    section.card:nth-child(odd){background:#fff}
-    section.card:nth-child(even){background:#fbfbfc}
+  .page-wrap{
+    max-width:1200px;
+    margin:30px auto 80px;
+    padding:0 20px;
+  }
 
-    /* responsive */
-    @media (max-width: 980px){
-      .one-fourth,.three-fourth{flex:0 0 100%;max-width:100%}
-      iframe{height:520px}
-    }
-    @media (max-width: 640px){
-      iframe{height:460px}
-    }
-  </style>
+  .hero-card{
+    text-align:center;
+    background:white;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:30px 24px 36px;
+    margin-bottom:32px;
+    border-top:5px solid #2563eb;
+  }
+  .hero-title{
+    font-size:1.6rem;
+    font-weight:700;
+    margin:0 0 10px;
+  }
+  .hero-desc{color:var(--text-dim);font-size:0.95rem;max-width:800px;margin:0 auto;}
+  .hero-meta{font-size:0.8rem;color:#6b7280;margin-top:10px;}
+
+  /* --- section cards --- */
+  .section-card{
+    background:white;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    margin-bottom:32px;
+    padding:26px 26px 30px;
+    border-top:5px solid transparent;
+  }
+
+  /* individual section accent colours */
+  .accent1{border-top-color:#059669; background:linear-gradient(135deg,#ecfdf5 0%,#ffffff 90%);}
+  .accent2{border-top-color:#4338ca; background:linear-gradient(135deg,#eef2ff 0%,#ffffff 90%);}
+  .accent3{border-top-color:#f59e0b; background:linear-gradient(135deg,#fffbeb 0%,#ffffff 90%);}
+  .accent4{border-top-color:#dc2626; background:linear-gradient(135deg,#fef2f2 0%,#ffffff 90%);}
+
+  .row{display:flex;flex-wrap:wrap;gap:24px;align-items:center;}
+  .row.reverse{flex-direction:row-reverse;}
+
+  .col-text{flex:1 1 380px;min-width:320px;}
+  .col-vis{flex:1 1 480px;min-width:320px;display:flex;justify-content:center;align-items:center;}
+
+  .section-heading{font-size:1rem;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .section-text{font-size:0.9rem;line-height:1.5;color:var(--text-dim);margin-bottom:12px;}
+  .section-text b{color:var(--text-main);background:rgba(37,99,235,0.08);padding:1px 3px;border-radius:3px;}
+  .key-find{font-size:0.85rem;line-height:1.4;border-left:4px solid #059669;padding:8px 12px;margin:12px 0;
+            background:rgba(5,150,105,0.08);border-radius:6px;}
+  .source-note{font-size:0.75rem;color:#94a3b8;}
+
+  .vis-frame{
+    width:100%;
+    height:400px;   /* 🔹 increased height */
+    border:none;
+    border-radius:10px;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.05),0 18px 36px rgba(0,0,0,0.08);
+    background:linear-gradient(180deg,#f8fafc 0%,#ffffff 100%);
+  }
+
+  footer{text-align:center;font-size:0.75rem;color:#94a3b8;margin-top:50px;}
+
+  @media(max-width:800px){
+    .row,.row.reverse{flex-direction:column;}
+    .vis-frame{height:340px;}
+  }
+</style>
 </head>
+
 <body>
-  <div class="page">
-    <h1>Australian Health Insights Dashboard (FIT3179)</h1>
-    <p class="lead">Exploring national patterns in obesity, physical activity, BMI distribution, and nutrition (ABS &amp; AIHW, 2022).</p>
+<div class="page-wrap">
 
-    <!-- 1) Text LEFT | Viz RIGHT -->
-    <section class="card">
-      <div class="two-col">
-        <div class="one-fourth description">
-          <h2>1) Obesity Rates by State</h2>
-          <p>
-            Choropleth of adults classified as <strong>obese</strong> (BMI ≥ 30).  
-            Darker shades indicate higher prevalence. Hover for exact values; small jurisdictions are labelled by
-            abbreviation for clarity.
-          </p>
-          <p class="src">Source: ABS National Health Survey, 2022.</p>
-        </div>
-        <div class="three-fourth">
-          <!-- If this file sits beside index.html, keep the relative src below -->
-          <iframe src="obesity_map.html" title="Obesity by State (Australia)"></iframe>
-        </div>
-      </div>
-    </section>
+  <section class="hero-card">
+    <h1 class="hero-title">Australian Health Insights Dashboard (FIT3179)</h1>
+    <p class="hero-desc">
+      Explore how Australians fare in <b>obesity</b>, <b>physical activity</b>,
+      <b>nutrition</b>, and <b>BMI</b>. Each chart reveals a different story
+      about lifestyle, wellbeing, and national health balance.
+    </p>
+    <p class="hero-meta">Submitted By: Anansh Pahwa • Student ID: 34333231</p>
+  </section>
 
-    <!-- 2) Viz LEFT | Text RIGHT -->
-    <section class="card">
-      <div class="two-col">
-        <div class="three-fourth">
-          <iframe src="activity_stack.html" title="Days of Physical Activity by Age"></iframe>
-        </div>
-        <div class="one-fourth description">
-          <h2>2) Physical Activity by Age</h2>
-          <p>
-            Grouped bars show the share of people reporting different <strong>days per week</strong> of activity.  
-            Use the dropdown to focus a single category. Ordering places <em>5 or more</em> before <em>5–6</em> for consistency.
+  <!-- 1. Obesity -->
+  <section class="section-card accent1">
+    <div class="row">
+      <div class="col-text">
+        <h2 class="section-heading">🍩 1. Obesity Rates by State</h2>
+        <p class="section-text">
+            <b>Obesity</b> here is defined as a Body Mass Index (BMI) of <b>30 or higher</b>.
+            The map shows the share of adults in each state who fall into that category.
+            Darker green means a higher proportion of adults living with obesity.
           </p>
-          <p class="src">Source: ABS Physical Activity, 2022.</p>
-        </div>
+          
+          <p class="section-text">
+            We can see noticeable differences across Australia. States such as
+            <b>Tasmania</b>, <b>Queensland</b>and <b>South Australia</b> sit in the higher range, while
+            <b>Western Australia</b> and <b>Victoria</b> tend to be lower. This suggests
+            that lifestyle, access to health services, and even local food or work
+            culture may influence chronic health risk.
+          </p>
+          <div class="key-find">
+            <b>Key finding:</b> Obesity is <b>not evenly distributed</b> across Australia.
+            Some states consistently report a higher at-risk population, meaning health
+            policy can’t be “one size fits all.”
+          </div>
       </div>
-    </section>
+      <div class="col-vis">
+        <iframe class="vis-frame" src="obesity_map.html"></iframe>
+      </div>
+    </div>
+  </section>
 
-    <!-- 3) Text LEFT | Viz RIGHT -->
-    <section class="card">
-      <div class="two-col">
-        <div class="one-fourth description">
-          <h2>3) BMI Classification by Age &nbsp;/&nbsp; Sex</h2>
-          <p>
-            100% stacked bars compare <strong>Underweight</strong>, <strong>Normal</strong>, <strong>Overweight</strong>, and <strong>Obese</strong>
-            within each age group, faceted by sex. Read across each row to compare composition.
+  <!-- 2. Physical Activity -->
+  <section class="section-card accent2">
+    <div class="row reverse">
+      <div class="col-text">
+        <h2 class="section-heading">💪 2. Physical Activity Frequency by Age</h2>
+        <p class="section-text">
+            This chart shows how many <b>days per week</b> people in each age group report
+            doing physical activity in a typical week. You can filter the chart using the
+            dropdown inside the visual to look at just one activity frequency,for example,
+            people active <b>5 or more days</b> each week.
           </p>
-          <p class="src">Source: ABS Health Survey (Persons), 2022.</p>
-        </div>
-        <div class="three-fourth">
-          <iframe src="bmi_stack.html" title="BMI Classification by Age and Sex"></iframe>
-        </div>
+          
+          <p class="section-text">
+            A clear pattern appears with age. Younger adults (18–24, 25–34) are more likely
+            to report <b>high-frequency activity (5+ days/week)</b>. As age increases, the
+            share of people doing activity almost every day slowly drops but it doesn’t
+            disappear. Even the <b>65+ group</b> still shows regular movement.
+          </p>
+          <div class="key-find" style="border-left-color:#4338ca;background:rgba(67,56,202,0.07)">
+            <b>Key finding:</b> Physical activity <b>does decline with age</b>, but older
+            Australians are still active, it’s reduced intensity, not a total stop.
+          </div>
       </div>
-    </section>
+      <div class="col-vis">
+        <iframe class="vis-frame" src="activity_stack.html"></iframe>
+      </div>
+    </div>
+  </section>
 
-    <!-- 4) Viz LEFT | Text RIGHT -->
-    <section class="card">
-      <div class="two-col">
-        <div class="three-fourth">
-          <iframe src="fruitveg_dumbbell.html" title="Fruit vs Vegetable Serves per Day"></iframe>
-        </div>
-        <div class="one-fourth description">
-          <h2>4) Fruit vs Vegetable Consumption</h2>
-          <p>
-            Dumbbell plot shows average daily <strong>fruit</strong> (blue) vs <strong>vegetable</strong> (green) serves by age group,
-            with dotted guidelines at ~2 and ~5 serves. Labels quantify the fruit-to-veg gap.
+  <!-- 3. Fruit & Veg -->
+  <section class="section-card accent3">
+    <div class="row">
+      <div class="col-text">
+        <h2 class="section-heading">🥦 3. Daily Fruit vs Vegetable Intake</h2>
+        <p class="section-text">
+            This “dumbbell” plot compares <b>average daily serves</b> of fruit (blue) and
+            vegetables (green) for each age group. Australian guidelines generally suggest
+            around <b>2 serves of fruit</b> and <b>5 serves of vegetables</b> per day.
+            The grey dashed lines mark those rough targets.
           </p>
-          <p class="src">Source: ABS Nutrition Survey, 2022.</p>
-        </div>
+          
+          <p class="section-text">
+            Most age groups meet (or come close to) the fruit guideline, especially
+            younger people, who tend to snack on fruit. But vegetable intake is consistently
+            lower than the 5-serve target. Only older age groups (55–64, 65+) start to get
+            closer to higher veg intake.
+          </p>
+        <div class="key-find" style="border-left-color:#f59e0b;background:rgba(245,158,11,0.1)">
+            <b>Key finding:</b> Australia has a <b>vegetable gap</b>. Fruit is doing “okay,”
+            but veg is still well under the ideal 5 serves/day for most adults.
+          </div>
       </div>
-    </section>
-  </div>
+      <div class="col-vis">
+        <iframe class="vis-frame" src="fruitveg_dumbbell.html"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. BMI -->
+  <section class="section-card accent4">
+    <div class="row reverse">
+        <div class="col-text">
+            <h2 class="section-heading">⚖️ 4. BMI by Age &amp; Sex</h2>
+          
+            <p class="section-text">
+              This chart shows the share of each <b>age group</b> that falls into the four
+              <b>BMI categories</b>: <b>Underweight</b>, <b>Normal</b>, <b>Overweight</b>,
+              and <b>Obese</b>. The bars are 100% stacked, so you’re seeing how that age
+              group is distributed across weight brackets.
+            </p>
+          
+            <p class="section-text">
+              Use the <b>Sex</b> dropdown under the chart to switch between
+              <b>Female</b>, <b>Male</b>, or <b>Average (All)</b>.  
+              <b>Average (All)</b> blends both sexes to give an overall population view.
+              This helps you compare broad trends vs sex-specific differences.
+            </p>
+          
+            <p class="section-text">
+              A clear pattern appears with age: the combined share of
+              <b>Overweight</b> and <b>Obese</b> grows in the older age bands. By around
+              <b>45–54 and above</b>, more than half of the group is no longer in the
+              <b>Normal</b> range. In many age groups, <b>males</b> sit slightly higher
+              in the heavier categories than <b>females</b>.
+            </p>
+          
+            <div class="key-find" style="border-left-color:#dc2626;background:rgba(239,68,68,0.1)">
+              <b>Key finding:</b> From about <b>mid-40s onward</b>, being in the
+              <b>Overweight or Obese</b> range becomes the majority, not the minority.
+              The shift, specially in males signals where long-term health risk
+              really accelerates.
+            </div>
+          </div>
+      <div class="col-vis" style="flex: 1 1 600px; min-width:600px;">
+        <iframe class="vis-frame" style="height:340px; width:600px;" src="bmi_stack.html"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Dashboard for FIT3179 Data Visualisation | Data sources: ABS &amp; AIHW 2022
+  </footer>
+
+</div>
 </body>
 </html>
