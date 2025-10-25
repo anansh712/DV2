@@ -8,10 +8,27 @@
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
   <style>
-    body{margin:0;background:#f7f8fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    main{max-width:1200px;margin:28px auto;padding:0 20px}
-    #vis{min-height:520px}
-    footer{color:#555;text-align:center;margin-top:14px;font-size:.95rem}
+    body{
+      margin:0;
+      background:#f7f8fa;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif
+    }
+    main{
+      max-width:1200px;
+      margin:28px auto;
+      padding:0 20px
+    }
+    #vis {
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+    }
+    footer{
+      color:#555;
+      text-align:center;
+      margin-top:14px;
+      font-size:.95rem
+    }
   </style>
 </head>
 <body>
@@ -20,14 +37,28 @@
   </main>
 
   <script>
-    // Make sure this CSV exists in your DV2/Datasets folder
-    // Columns required: AgeGroup, Type (Fruit|Vegetables), AverageServes
+    // CSV must have: AgeGroup, Type ("Fruit" or "Vegetables"), AverageServes
     const CSV_URL = "https://raw.githubusercontent.com/anansh712/DV2/main/Datasets/fruitveg_proportions.csv";
+
+    // Force consistent y-order across ALL layers so we never see "0"
+    const AGE_ORDER = [
+      "15–17",
+      "18–24",
+      "25–34",
+      "35–44",
+      "45–54",
+      "55–64",
+      "65 years and over"
+    ];
 
     const spec = {
       $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-      width: 980,
-      height: 420,
+
+      width: 550,
+        height: 335,
+        x: { scale: { domain: [0, 4] } },
+      autosize: { type: "fit", contains: "padding" },
+
       data: { url: CSV_URL },
 
       transform: [
@@ -39,9 +70,23 @@
         {
           mark: { type: "rule", strokeWidth: 3, opacity: 0.7 },
           encoding: {
-            y: { field: "AgeGroup", type: "nominal", sort: null, title: "Age group" },
-            x: { aggregate: "min", field: "AverageServes", type: "quantitative", title: "Average serves/day" },
-            x2:{ aggregate: "max", field: "AverageServes" }
+            y: {
+              field: "AgeGroup",
+              type: "ordinal",
+              sort: AGE_ORDER,
+              scale: { domain: AGE_ORDER },
+              title: "Age group"
+            },
+            x: {
+              aggregate: "min",
+              field: "AverageServes",
+              type: "quantitative",
+              title: "Average serves/day"
+            },
+            x2:{
+              aggregate: "max",
+              field: "AverageServes"
+            }
           }
         },
 
@@ -49,16 +94,34 @@
         {
           mark: { type: "point", filled: true, size: 180 },
           encoding: {
-            y: { field: "AgeGroup", type: "nominal", sort: null },
-            x: { field: "AverageServes", type: "quantitative" },
+            y: {
+              field: "AgeGroup",
+              type: "ordinal",
+              sort: AGE_ORDER,
+              scale: { domain: AGE_ORDER }
+            },
+            x: {
+              field: "AverageServes",
+              type: "quantitative"
+            },
             color: {
-              field: "Type", type: "nominal", title: null,
-              scale: { domain: ["Fruit","Vegetables"], range: ["#56B4E9","#00A676"] }
+              field: "Type",
+              type: "nominal",
+              title: null,
+              scale: {
+                domain: ["Fruit","Vegetables"],
+                range: ["#56B4E9","#00A676"]
+              }
             },
             tooltip: [
-              { field: "AgeGroup" },
-              { field: "Type" },
-              { field: "AverageServes", type: "quantitative", format: ".1f", title: "Serves/day" }
+              { field: "AgeGroup", title: "Age group" },
+              { field: "Type", title: "Type" },
+              {
+                field: "AverageServes",
+                type: "quantitative",
+                format: ".1f",
+                title: "Serves/day"
+              }
             ]
           }
         },
@@ -74,7 +137,12 @@
           ],
           mark: { type: "text", dy: -8, fontSize: 11, opacity: 0.8 },
           encoding: {
-            y: { field: "AgeGroup", type: "nominal", sort: null },
+            y: {
+              field: "AgeGroup",
+              type: "ordinal",
+              sort: AGE_ORDER,
+              scale: { domain: AGE_ORDER }
+            },
             x: { field: "mid", type: "quantitative" },
             text: { field: "diff", type: "quantitative", format: "+.1f" },
             color: { value: "#6b7280" }
@@ -83,14 +151,36 @@
 
         /* 4) guideline lines at ~2 fruit and ~5 veg */
         {
-          data: { values: [{v:2, label:"Fruit guideline ~2"}, {v:5, label:"Veg guideline ~5"}] },
+          data: {
+            values: [
+              {v:2, label:"2"},
+              {v:5, label:"5"}
+            ]
+          },
           mark: { type: "rule", strokeDash: [4,4], opacity: 0.6 },
-          encoding: { x: { field: "v", type: "quantitative" } }
+          encoding: {
+            x: { field: "v", type: "quantitative" }
+          }
         },
         {
-          data: { values: [{v:2, label:"2"}, {v:5, label:"5"}] },
-          mark: { type: "text", dy: -6, align: "center", fontSize: 11, opacity: 0.8 },
-          encoding: { x: { field: "v", type: "quantitative" }, y: { value: 0 }, text: { field: "label" } }
+          data: {
+            values: [
+              {v:2, label:"2"},
+              {v:5, label:"5"}
+            ]
+          },
+          mark: {
+            type: "text",
+            dy: -6,
+            align: "center",
+            fontSize: 11,
+            opacity: 0.8
+          },
+          encoding: {
+            x: { field: "v", type: "quantitative" },
+            y: { value: 0 },
+            text: { field: "label" }
+          }
         }
       ],
 
@@ -120,5 +210,6 @@
 
     vegaEmbed("#vis", spec, { actions: false });
   </script>
+
 </body>
 </html>
